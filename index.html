@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Process Control Simulation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        #simulation-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 800px;
+            margin: auto;
+        }
+
+        .parameter,
+        .motor {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .parameter img,
+        .motor img {
+            max-width: 200px;
+            max-height: 200px;
+            margin-right: 10px;
+        }
+
+        input[type="range"] {
+            width: 70%;
+            margin-left: 10px;
+        }
+
+        .motor-rpm {
+            margin-top: 20px;
+        }
+
+        .observation-container {
+            width: 40%;
+            margin-top: 20px;
+            margin-left: 10px;
+        }
+
+        .dashboard-container {
+            width: 25%;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #bfff00;
+        }
+
+        th,
+        td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f3ad81;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <h1>Process Control Simulation</h1>
+        <img src="/Simulation/raspberry.jpg" width="300px" height="500px">
+    </div>
+
+    <div id="simulation-container">
+
+        <h2>Feedback Parameters</h2>
+        <div class="parameter">
+            <img src="/Simulation/tempSensor.jpg" alt="Temperature Icon">
+            <label for="temperature">1. Temperature of Thermofluid <b>(50 to 300°C)</b>:</label>
+            <input type="range" id="temperature" min="50" max="300" value="50">
+            <span id="temperature-value"></span>
+        </div>
+
+        <div class="parameter">
+            <img src="/Simulation/flowSensor.jpg" alt="Flow Rate Icon">
+            <label for="flow-rate">2. Flow Rate of juice Stream <b>(0 to 50 L/min)</b>:</label>
+            <input type="range" id="flow-rate" min="0" max="10" value="10">
+            <span id="flow-rate-value"></span>
+        </div>
+        <div>
+            <div class="motor">
+                <img src="/Simulation/feedPump.jpeg" alt="Motor 1 Icon">
+                <h3>Feed Pump (RPM): <span id="motor1-rpm-value">0</span></h3>
+
+                <img src="/Simulation/stirrer.webp" alt="Motor 2 Icon">
+                <h3>Stirrer Motor (RPM): <span id="motor2-rpm-value">0</span></h3>
+
+            </div>
+
+        </div>
+
+
+
+        <div>
+            <button onclick="startSimulation()">Start Simulation</button>
+            <button onclick="stopSimulation()">Stop Simulation</button>
+        </div>
+
+    </div>
+
+    <div class="observation-container">
+        <h2>Observation Table</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Sr. No.</th>
+                    <th>Temperature (°C) </th>
+                    <th>Flow Rate (L/min)</th>
+                    <th>Feed Pump (RPM)</th>
+                    <th>Stirrer (RPM)</th>
+                </tr>
+            </thead>
+            <tbody id="observation-table-body">
+                <!-- Observation rows will be added dynamically here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+
+
+        var temperatureSlider = document.getElementById('temperature');
+        var temperatureValue = document.getElementById('temperature-value');
+        var flowRateSlider = document.getElementById('flow-rate');
+        var flowRateValue = document.getElementById('flow-rate-value');
+        var motor1RPMValue = document.getElementById('motor1-rpm-value');
+        var motor2RPMValue = document.getElementById('motor2-rpm-value');
+
+        const observationTableBody = document.getElementById('observation-table-body');
+
+        let observationCounter = 1;
+
+        temperatureSlider.addEventListener('input', updateTemperatureValue);
+        flowRateSlider.addEventListener('input', updateFlowRateValue);
+
+        function updateTemperatureValue() {
+            temperatureValue.textContent = temperatureSlider.value;
+        }
+
+        function updateFlowRateValue() {
+            flowRateValue.textContent = flowRateSlider.value;
+        }
+
+
+
+        function startSimulation() {
+            // Implement your simulation logic here
+            // Update motor RPMs based on temperature and flow rate
+            // Display the updated motor RPM values
+            var stirr = 900;
+            var feed = 6;
+            if (temperatureSlider.value >= 250) {
+                stirr = 1440;
+            } else if (temperatureSlider.value >= 200) {
+                stirr = 1200;
+            } else if (temperatureSlider.value >= 150) {
+                stirr = 1100;
+            }
+
+            var rpm = (flowRateSlider.value * 231) / 1.25
+
+            const simulatedRPM1 = Math.round(rpm); // Replace with your logic for Motor 1
+            const simulatedRPM2 = stirr // Replace with your logic for Motor 2
+            motor1RPMValue.textContent = simulatedRPM1;
+            motor2RPMValue.textContent = simulatedRPM2;
+
+            // Record the observation in the table
+            const newRow = createObservationRow(
+                observationCounter,
+                temperatureSlider.value,
+                flowRateSlider.value,
+                simulatedRPM1,
+                simulatedRPM2
+            );
+
+            observationTableBody.appendChild(newRow);
+
+            // Increment the observation counter
+            observationCounter++;
+        }
+
+        function stopSimulation() {
+            // Implement any necessary logic to stop the simulation
+            temperatureSlider.value = 0;
+            flowRateSlider.value = 0;
+            motor1RPMValue.textContent = 0;
+            motor2RPMValue.textContent = 0;
+        }
+
+        function createObservationRow(simulation, temperature, flowRate, motor1RPM, motor2RPM) {
+            const row = document.createElement('tr');
+
+            const simulationCell = document.createElement('td');
+            simulationCell.textContent = simulation;
+            row.appendChild(simulationCell);
+
+            const temperatureCell = document.createElement('td');
+            temperatureCell.textContent = temperature;
+            row.appendChild(temperatureCell);
+
+            const flowRateCell = document.createElement('td');
+            flowRateCell.textContent = flowRate;
+            row.appendChild(flowRateCell);
+
+            const motor1RPMCell = document.createElement('td');
+            motor1RPMCell.textContent = motor1RPM;
+            row.appendChild(motor1RPMCell);
+
+            const motor2RPMCell = document.createElement('td');
+            motor2RPMCell.textContent = motor2RPM;
+            row.appendChild(motor2RPMCell);
+
+            return row;
+        }
+    </script>
+
+</body>
+
+</html>
